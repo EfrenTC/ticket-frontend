@@ -2,16 +2,17 @@
 import { onMounted, ref, computed } from 'vue';
 import Navbar from '../components/layout/Navbar.vue';
 import api from '../services/api.service';
-import type { User } from '../types';
+import type { Ticket, User } from '../types';
 
 const user = ref<User | null>(null);
 const loading = ref(true);
 const showConfetti = ref(false);
+const tickets = ref<Ticket[]>([]);
 
 const quickStats = ref([
-  { label: 'Tickets este mes', value: 0, target: 24, icon: '🎫', color: 'blue' },
-  { label: 'Gastado', value: 0, target: 1250, prefix: '€', icon: '💰', color: 'purple' },
-  { label: 'Categorías activas', value: 0, target: 5, icon: '🏷️', color: 'green' }
+  { label: 'Tickets este mes', value: 0, target: 0, icon: '🎫', color: 'blue' },
+  { label: 'Gastado', value: 0, target: 0, prefix: '€', icon: '💰', color: 'purple' },
+  { label: 'Categorías activas', value: 0, target: 0, icon: '🏷️', color: 'green' }
 ]);
 
 const quickActions = [
@@ -45,11 +46,32 @@ const quickActions = [
   }
 ];
 
-const recentActivity = [
-  { type: 'Restauración', amount: 45.50, date: 'Hace 2 horas', status: 'pendiente' },
-  { type: 'Gasolina', amount: 60.00, date: 'Ayer', status: 'terminado' },
-  { type: 'Aparcamiento', amount: 3.50, date: 'Hace 2 días', status: 'terminado' }
-];
+const formatRelativeDate = (dateString: string) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'Ahora mismo';
+  if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
+  if (diffHours < 24) return `Hace ${diffHours} horas`;
+  if (diffDays === 1) return 'Ayer';
+  return `Hace ${diffDays} días`;
+};
+
+const recentActivity = computed(() => {
+  return [...tickets.value]
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+    .slice(0, 3)
+    .map(ticket => ({
+      type: ticket.gasto,
+      amount: Number(ticket.importe),
+      date: formatRelativeDate(ticket.fecha),
+      status: ticket.conciliado
+    }));
+});
 
 const userInitials = computed(() => {
   if (!user.value) return '?';
@@ -70,6 +92,11 @@ const greetingMessage = computed(() => {
 
 const animateCounter = (index: number, duration = 1500) => {
   const stat = quickStats.value[index];
+  if (stat.target <= 0) {
+    stat.value = 0;
+    return;
+  }
+
   const increment = stat.target / (duration / 16);
   const timer = setInterval(() => {
     stat.value += increment;
@@ -80,13 +107,36 @@ const animateCounter = (index: number, duration = 1500) => {
   }, 16);
 };
 
+const computeStats = () => {
+  const now = new Date();
+  const isSameMonth = (date: Date) => (
+    date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+  );
+
+  const monthlyTickets = tickets.value.filter(ticket => isSameMonth(new Date(ticket.fecha)));
+  const spentThisMonth = monthlyTickets.reduce((total, ticket) => total + Number(ticket.importe || 0), 0);
+  const activeCategories = new Set(tickets.value.map(ticket => ticket.categoria));
+
+  quickStats.value = [
+    { label: 'Tickets este mes', value: 0, target: monthlyTickets.length, icon: '🎫', color: 'blue' },
+    { label: 'Gastado', value: 0, target: Math.round(spentThisMonth), prefix: '€', icon: '💰', color: 'purple' },
+    { label: 'Categorías activas', value: 0, target: activeCategories.size, icon: '🏷️', color: 'green' }
+  ];
+};
+
 onMounted(async () => {
   try {
-    const response = await api.get('/api/user');
-    user.value = response.data;
+    const [userResponse, ticketsResponse] = await Promise.all([
+      api.get('/api/user'),
+      api.get('/api/tickets')
+    ]);
+    user.value = userResponse.data;
+    tickets.value = ticketsResponse.data || [];
     
     showConfetti.value = true;
     setTimeout(() => showConfetti.value = false, 3000);
+
+    computeStats();
     
     setTimeout(() => {
       quickStats.value.forEach((_, index) => {
