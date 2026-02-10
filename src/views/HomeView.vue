@@ -57,7 +57,7 @@ const categories = [
   { name: 'Otros', icon: '📦', color: 'bg-gray-100 text-gray-600' }
 ];
 
-// Animated counter
+
 const animateCounter = (index, duration = 2000) => {
   const stat = stats.value[index];
   const increment = stat.target / (duration / 16);
