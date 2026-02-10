@@ -29,7 +29,10 @@ watch(() => route.fullPath, syncAuth);
 
 <template>
   <nav class="bg-white border-b border-gray-200 py-4 px-6 flex justify-between items-center shadow-sm">
-    <router-link to="/" class="text-2xl font-bold text-blue-600 hover:opacity-80 transition-opacity">
+    <router-link
+      :to="isAuthenticated ? { name: 'welcome' } : { name: 'home' }"
+      class="text-2xl font-bold text-blue-600 hover:opacity-80 transition-opacity"
+    >
       TicketManager
     </router-link>
 
