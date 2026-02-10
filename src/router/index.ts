@@ -22,6 +22,26 @@ const routes = [
     name: 'welcome',
     component: () => import('../views/WelcomeView.vue')
   },
+  {
+    path: '/stats',
+    name: 'stats',
+    component: () => import('../views/StatsView.vue')
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../views/ProfileView.vue')
+  },
+  {
+  path: '/tickets',
+  name: 'tickets',
+  component: () => import('../views/TicketsView.vue'),
+},
+{
+  path: '/tickets/create',
+  name: 'tickets-create',
+  component: () => import('../views/CreateTicketView.vue'),
+},
 ]
 
 const router = createRouter({
