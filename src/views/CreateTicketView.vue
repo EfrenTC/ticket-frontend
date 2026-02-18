@@ -1,27 +1,45 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTickets } from '../composables/useTickets';
 import Navbar from '../components/layout/Navbar.vue';
+import api from '../services/api.service';
 import type { TicketPayload } from '../types';
 
 const { createTicket, errors, loading } = useTickets();
 const router = useRouter();
+const categories = ref<Array<{ id: number; name: string }>>([]);
+const tags = ref<Array<{ id: number; name: string }>>([]);
 
 const form = ref<TicketPayload>({
     gasto: '',
     importe: null,
-    categoria: '',
+    categoria: 'Otros',
+    category_id: null,
     cif: '',
     metodo_pago: 'Tarjeta',
     conciliado: 'pendiente',
-    fecha: new Date().toISOString().split('T')[0]
+    fecha: new Date().toISOString().split('T')[0],
+    tag_ids: [],
 });
 
 const handleSubmit = async () => {
     const success = await createTicket(form.value);
     if (success) router.push({ name: 'tickets' });
 };
+
+onMounted(async () => {
+    try {
+        const [categoriesResponse, tagsResponse] = await Promise.all([
+            api.get('/api/categories'),
+            api.get('/api/tags'),
+        ]);
+        categories.value = categoriesResponse.data || [];
+        tags.value = tagsResponse.data || [];
+    } catch (error) {
+        console.error('No se pudo cargar catálogo de categorías/etiquetas', error);
+    }
+});
 </script>
 
 <template>
@@ -63,6 +81,21 @@ const handleSubmit = async () => {
                                 <option value="Otros">Otros</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría personalizada</label>
+                            <select v-model.number="form.category_id" class="w-full p-3 rounded-xl border bg-white">
+                                <option :value="null">Sin categoría personalizada</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Etiquetas</label>
+                        <select v-model="form.tag_ids" multiple class="w-full p-3 rounded-xl border bg-white min-h-28">
+                            <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Mantén Ctrl/Cmd para seleccionar varias.</p>
                     </div>
 
                     <div>

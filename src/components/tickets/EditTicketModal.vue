@@ -7,6 +7,8 @@ const props = defineProps<{
   ticket: Ticket | null;
   loading: boolean;
   errors: any;
+  categories?: Array<{ id: number; name: string }>;
+  tags?: Array<{ id: number; name: string }>;
 }>();
 
 const emit = defineEmits(['close', 'save']);
@@ -14,11 +16,13 @@ const emit = defineEmits(['close', 'save']);
 const form = ref<TicketPayload>({
   gasto: '',
   importe: 0,
-  categoria: '',
+  categoria: 'Otros',
+  category_id: null,
   cif: '',
-  metodo_pago: '',
+  metodo_pago: 'Tarjeta',
   conciliado: 'pendiente',
-  fecha: ''
+  fecha: '',
+  tag_ids: [],
 });
 
 // Sincronizar el formulario cuando cambia el ticket seleccionado
@@ -28,10 +32,12 @@ watch(() => props.ticket, (newTicket) => {
       gasto: newTicket.gasto,
       importe: Number(newTicket.importe),
       categoria: newTicket.categoria,
+      category_id: newTicket.category_id ?? null,
       cif: newTicket.cif,
       metodo_pago: newTicket.metodo_pago,
       conciliado: newTicket.conciliado,
-      fecha: new Date(newTicket.fecha).toISOString().split('T')[0]
+      fecha: new Date(newTicket.fecha).toISOString().split('T')[0],
+      tag_ids: (newTicket.tags || []).map(tag => tag.id),
     };
   }
 }, { immediate: true });
@@ -73,9 +79,24 @@ const categories = ['Restauración', 'Aparcamiento', 'Peaje', 'Transporte', 'Alo
           </div>
 
           <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Categoría personalizada</label>
+            <select v-model.number="form.category_id" class="w-full p-3 border rounded-xl bg-white">
+              <option :value="null">Sin categoría personalizada</option>
+              <option v-for="item in props.categories || []" :key="item.id" :value="item.id">{{ item.name }}</option>
+            </select>
+          </div>
+
+          <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">CIF</label>
             <input v-model="form.cif" type="text" class="w-full p-3 border rounded-xl">
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Etiquetas</label>
+          <select v-model="form.tag_ids" multiple class="w-full p-3 border rounded-xl bg-white min-h-24">
+            <option v-for="item in props.tags || []" :key="item.id" :value="item.id">{{ item.name }}</option>
+          </select>
         </div>
 
         <div>

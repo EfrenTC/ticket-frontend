@@ -3,9 +3,18 @@ import { ref, onMounted } from 'vue';
 import Navbar from '../components/layout/Navbar.vue';
 import EditTicketModal from '../components/tickets/EditTicketModal.vue';
 import { useTickets } from '../composables/useTickets';
+import api from '../services/api.service';
 import type { Ticket, TicketPayload } from '../types';
 
-const { tickets, loading, errors, fetchTickets, deleteTicket, updateTicket } = useTickets();
+const { tickets, loading, errors, pagination, fetchTickets, deleteTicket, updateTicket } = useTickets();
+const categories = ref<Array<{ id: number; name: string }>>([]);
+const tags = ref<Array<{ id: number; name: string }>>([]);
+const filters = ref({
+  q: '',
+  category_id: null as number | null,
+  conciliado: '',
+  page: 1,
+});
 
 const showEditModal = ref(false);
 const selectedTicket = ref<Ticket | null>(null);
@@ -30,9 +39,31 @@ const handleUpdate = async (formData: TicketPayload) => {
   }
 };
 
+const applyFilters = async () => {
+  await fetchTickets({
+    q: filters.value.q || undefined,
+    category_id: filters.value.category_id,
+    conciliado: filters.value.conciliado || undefined,
+    page: filters.value.page,
+    per_page: 15,
+  });
+};
+
+const changePage = async (newPage: number) => {
+  if (newPage < 1 || newPage > pagination.value.last_page) return;
+  filters.value.page = newPage;
+  await applyFilters();
+};
+
 
 onMounted(() => {
-  fetchTickets();
+  Promise.all([
+    applyFilters(),
+    api.get('/api/categories').then(response => { categories.value = response.data || []; }),
+    api.get('/api/tags').then(response => { tags.value = response.data || []; }),
+  ]).catch(error => {
+    console.error('No se pudieron cargar catálogos de tickets', error);
+  });
 });
 
 const formatCurrency = (value: number) => {
@@ -57,6 +88,20 @@ const formatCurrency = (value: number) => {
         >
           <span class="mr-2">➕</span> Nuevo Ticket
         </router-link>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 grid md:grid-cols-4 gap-3">
+        <input v-model="filters.q" type="text" placeholder="Buscar por concepto, CIF..." class="p-2 border rounded-lg" />
+        <select v-model.number="filters.category_id" class="p-2 border rounded-lg bg-white">
+          <option :value="null">Todas las categorías</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+        </select>
+        <select v-model="filters.conciliado" class="p-2 border rounded-lg bg-white">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="terminado">Terminado</option>
+        </select>
+        <button @click="filters.page = 1; applyFilters()" class="bg-blue-600 text-white rounded-lg px-4">Filtrar</button>
       </div>
 
       <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -125,6 +170,14 @@ const formatCurrency = (value: number) => {
           </table>
         </div>
       </div>
+
+      <div class="mt-4 flex items-center justify-between bg-white rounded-2xl border border-gray-100 p-4">
+        <p class="text-sm text-gray-600">Página {{ pagination.current_page }} de {{ pagination.last_page }} · {{ pagination.total }} tickets</p>
+        <div class="space-x-2">
+          <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page <= 1" class="px-3 py-1 rounded border disabled:opacity-50">Anterior</button>
+          <button @click="changePage(pagination.current_page + 1)" :disabled="pagination.current_page >= pagination.last_page" class="px-3 py-1 rounded border disabled:opacity-50">Siguiente</button>
+        </div>
+      </div>
     </main>
 
     <EditTicketModal 
@@ -132,6 +185,8 @@ const formatCurrency = (value: number) => {
       :ticket="selectedTicket"
       :loading="loading"
       :errors="errors"
+      :categories="categories"
+      :tags="tags"
       @close="closeEditModal"
       @save="handleUpdate"
     />
