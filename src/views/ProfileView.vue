@@ -46,7 +46,7 @@ const saveProfile = async () => {
   profileErrors.value = {};
   profileSuccess.value = '';
   try {
-    await api.put('/user/profile-information', profileForm.value);
+    await api.put('/api/profile', profileForm.value);
     profileSuccess.value = 'Perfil actualizado correctamente.';
   } catch (error: any) {
     profileErrors.value = error?.response?.data?.errors ?? {};
@@ -57,7 +57,11 @@ const updatePassword = async () => {
   passwordErrors.value = {};
   passwordSuccess.value = '';
   try {
-    await api.put('/user/password', passwordForm.value);
+    await api.post('/api/profile/change-password', {
+      current_password: passwordForm.value.current_password,
+      new_password: passwordForm.value.password,
+      new_password_confirmation: passwordForm.value.password_confirmation,
+    });
     passwordSuccess.value = 'Contrasena actualizada.';
     passwordForm.value = {
       current_password: '',
@@ -72,7 +76,7 @@ const updatePassword = async () => {
 onMounted(async () => {
   try {
     const [userResponse, ticketsResponse] = await Promise.all([
-      api.get('/api/user'),
+      api.get('/api/profile'),
       api.get('/api/tickets')
     ]);
     user.value = userResponse.data;
@@ -80,7 +84,7 @@ onMounted(async () => {
       name: userResponse.data?.name ?? '',
       email: userResponse.data?.email ?? ''
     };
-    tickets.value = ticketsResponse.data || [];
+    tickets.value = ticketsResponse.data?.data || [];
   } catch (error) {
     console.error('Error al cargar el perfil', error);
   } finally {
