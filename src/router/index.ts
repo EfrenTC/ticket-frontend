@@ -42,6 +42,11 @@ const routes = [
   name: 'tickets-create',
   component: () => import('../views/CreateTicketView.vue'),
 },
+{
+  path: '/operations',
+  name: 'operations',
+  component: () => import('../views/OperationsView.vue'),
+},
 ]
 
 const router = createRouter({

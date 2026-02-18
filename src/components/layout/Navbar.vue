@@ -38,6 +38,11 @@ watch(() => route.fullPath, syncAuth);
 
     <div class="space-x-4">
       <template v-if="isAuthenticated">
+        <router-link to="/welcome" class="text-gray-600 hover:text-blue-600 font-medium">Inicio</router-link>
+        <router-link to="/tickets" class="text-gray-600 hover:text-blue-600 font-medium">Tickets</router-link>
+        <router-link to="/stats" class="text-gray-600 hover:text-blue-600 font-medium">Stats</router-link>
+        <router-link to="/profile" class="text-gray-600 hover:text-blue-600 font-medium">Perfil</router-link>
+        <router-link to="/operations" class="text-gray-600 hover:text-blue-600 font-medium">Módulos</router-link>
         <button
           type="button"
           class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"

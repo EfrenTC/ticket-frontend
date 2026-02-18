@@ -38,11 +38,11 @@ const quickActions = [
     route: '/stats'
   },
   {
-    title: 'Mi Perfil',
-    description: 'Configuración',
-    icon: '⚙️',
+    title: 'Módulos',
+    description: 'Nuevas funciones',
+    icon: '🧩',
     color: 'from-orange-500 to-orange-600',
-    route: '/profile'
+    route: '/operations'
   }
 ];
 
@@ -131,7 +131,7 @@ onMounted(async () => {
       api.get('/api/tickets')
     ]);
     user.value = userResponse.data;
-    tickets.value = ticketsResponse.data || [];
+    tickets.value = ticketsResponse.data?.data || [];
     
     showConfetti.value = true;
     setTimeout(() => showConfetti.value = false, 3000);
