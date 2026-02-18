@@ -97,7 +97,7 @@ const maxMonthlyTotal = computed(() => {
 onMounted(async () => {
   try {
     const response = await api.get('/api/tickets');
-    tickets.value = response.data || [];
+    tickets.value = response.data?.data || [];
   } catch (error) {
     console.error('Error al obtener tickets', error);
   } finally {

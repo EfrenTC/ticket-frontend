@@ -1,18 +1,37 @@
 import { ref } from 'vue';
 import api from '../services/api.service';
-import type { Ticket, TicketPayload, AuthErrors } from '../types';
+import type {
+    Ticket,
+    TicketPayload,
+    AuthErrors,
+    PaginatedResponse,
+    PaginationMeta,
+    TicketFilters,
+} from '../types';
 
 export function useTickets() {
     const tickets = ref<Ticket[]>([]);
     const currentTicket = ref<Ticket | null>(null);
     const loading = ref(false);
     const errors = ref<AuthErrors>({});
+    const pagination = ref<PaginationMeta>({
+        current_page: 1,
+        last_page: 1,
+        per_page: 15,
+        total: 0,
+    });
 
-    const fetchTickets = async () => {
+    const fetchTickets = async (filters: TicketFilters = {}) => {
         loading.value = true;
         try {
-            const response = await api.get('/api/tickets');
-            tickets.value = response.data;
+            const response = await api.get<PaginatedResponse<Ticket>>('/api/tickets', { params: filters });
+            tickets.value = response.data?.data ?? [];
+            pagination.value = {
+                current_page: response.data?.current_page ?? 1,
+                last_page: response.data?.last_page ?? 1,
+                per_page: response.data?.per_page ?? 15,
+                total: response.data?.total ?? 0,
+            };
         } catch (e: any) {
             console.error("Error al obtener tickets", e);
         } finally {
@@ -66,8 +85,11 @@ export function useTickets() {
 
     const deleteTicket = async (id: number) => {
         try {
-            await api.delete(`/api/tickets/${id}`);
+            await api.delete(`/api/tickets/${id}`, {
+                data: { confirm: true },
+            });
             tickets.value = tickets.value.filter(t => t.id !== id);
+            pagination.value.total = Math.max(0, pagination.value.total - 1);
         } catch (e: any) {
             console.error("Error al borrar ticket", e);
         }
@@ -78,6 +100,7 @@ export function useTickets() {
         currentTicket, 
         loading, 
         errors, 
+        pagination,
         fetchTickets, 
         getTicket, 
         createTicket, 
