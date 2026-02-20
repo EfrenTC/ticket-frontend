@@ -47,6 +47,21 @@ const routes = [
   name: 'operations',
   component: () => import('../views/OperationsView.vue'),
 },
+{
+  path: '/contact',
+  name: 'contact',
+  component: () => import('../views/ContactView.vue'),
+},
+{
+  path: '/terms',
+  name: 'terms',
+  component: () => import('../views/TermsView.vue'),
+},
+{
+  path: '/about',
+  name: 'about',
+  component: () => import('../views/AboutView.vue'),
+},
 ]
 
 const router = createRouter({
@@ -55,7 +70,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const publicRoutes = new Set(['home', 'login', 'register']);
+  const publicRoutes = new Set(['home', 'login', 'register', 'contact', 'terms', 'about']);
   const isPublic = publicRoutes.has(to.name as string);
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
