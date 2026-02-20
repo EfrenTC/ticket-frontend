@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue';
-import api from './services/api.service';
+import { initTheme } from './composables/useTheme';
 
-
-
+onMounted(() => {
+  initTheme();
+});
 </script>
 
 <template>
