@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 @layer base {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   body {
     @apply antialiased;
     background: #000000;
@@ -147,4 +153,16 @@ body.theme-light .bg-grid-pattern {
 
 body.theme-light ::-webkit-scrollbar-thumb {
   background: rgba(124, 58, 237, 0.32) !important;
+}
+
+@media (max-width: 768px) {
+  .panel-card,
+  .filter-bar,
+  .modal-card {
+    border-radius: 1rem !important;
+  }
+
+  .bg-grid-pattern {
+    background-size: 36px 36px !important;
+  }
 }
