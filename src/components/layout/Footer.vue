@@ -4,8 +4,8 @@ const currentYear = new Date().getFullYear();
 
 <template>
   <footer class="tm-footer mt-14 border-t border-white/5">
-    <div class="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
-      <div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 grid md:grid-cols-3 gap-8 text-center md:text-left">
+      <div class="md:pr-6">
         <h3 class="footer-brand text-lg font-extrabold tracking-tight">TicketManager</h3>
         <p class="footer-text mt-2 text-sm leading-relaxed">
           Plataforma de gestión de tickets y gastos con paneles, estadísticas y control de conciliación.
@@ -31,7 +31,7 @@ const currentYear = new Date().getFullYear();
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-6 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pb-6 sm:pb-8 text-center md:text-left">
       <p class="footer-copy text-xs">© {{ currentYear }} TicketManager. Todos los derechos reservados.</p>
     </div>
   </footer>
